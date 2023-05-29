@@ -1,8 +1,7 @@
 <template>
   <div class="menu-bar">
     <transition name="slide-up">
-      <div class="menu-wrapper" :class="{'hide-box-shadow':ifSettingShow || !ifTitleAndMenuShow}" 
-      v-show="ifTitleAndMenuShow">
+      <div class="menu-wrapper" :class="{'hide-box-shadow':ifSettingShow}" >
         <div class="icon-wrapper">
           <span class="icon-menu icon" @click="showSetting(3)"></span>
         </div>
@@ -79,10 +78,6 @@ export default {
     ContentView
   },
   props: {
-    ifTitleAndMenuShow: {
-      type: Boolean,
-      default: false
-    },
     fontSizeList: Array,
     defaultFontSize: Number,
     themeList: Array,
@@ -113,6 +108,7 @@ export default {
   },
   methods: {
     hideContent() {
+      this.$emit('removeMask')
       this.ifShowContent = false
     },
     jumpTo(target) {
@@ -136,15 +132,29 @@ export default {
       this.$emit('setFontSize', fontSize)
     },
     showSetting(tag) {
-      this.showTag = tag
-      if (this.showTag === 3) {
-        this.ifSettingShow = false
-        this.ifShowContent = true
+      this.$emit('addMask')
+      if (!this.ifSettingShow) {
+        this.showTag = tag
+        if (this.showTag === 3) {
+          this.ifSettingShow = false
+          this.ifShowContent = true
+        } else {
+          this.ifSettingShow = true
+        }
       } else {
-        this.ifSettingShow = true
+        if (this.showTag === tag) {
+          this.hideSetting()
+        } else {
+          this.showTag = tag
+          if (this.showTag === 3) {
+            this.ifSettingShow = false
+            this.ifShowContent = true
+          } 
+        }
       }
     },
     hideSetting() {
+      this.$emit('removeMask')
       this.ifSettingShow = false
     }
   }
@@ -157,7 +167,7 @@ export default {
     position: absolute;
     bottom: px2rem(48);
     left: 0;
-    z-index: 101;
+    z-index: 100;
     width: 100%;
     height: px2rem(50);
     background: white;

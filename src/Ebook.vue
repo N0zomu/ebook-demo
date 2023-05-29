@@ -1,28 +1,37 @@
 <template>
     <div class="ebook">
-      <title-bar :ifTitleAndMenuShow="ifTitleAndMenuShow"></title-bar>
+      <title-bar></title-bar>
       <div class="read-wrapper">
-        <div id="read"></div>
-        <div class="mask">
-          <div class="left" @click="prevPage"></div>
-          <div class="center" @click="toggleTitleAndMenu"></div>
-          <div class="right" @click="nextPage"></div>
+        <div class="left" @click="prevPage">
+          <span class="icon-left icon"></span>
+        </div>
+        <div class="middle">
+          <div id="read"></div>
+        </div>
+        <div class="right" @click="nextPage">
+          <span class="icon-right icon"></span>
+        </div>
+        <div class="mask" v-if="ifMask">
+          <div class="left"></div>
+          <div class="center" @click="toggleSetting"></div>
+          <div class="right"></div>
         </div>
       </div>
-      <menu-bar :ifTitleAndMenuShow="ifTitleAndMenuShow"
-                :fontSizeList="fontSizeList"
-                :defaultFontSize="defaultFontSize"
-                @setFontSize='setFontSize'
-                :themeList="themeList"
-                :defaultTheme="defaultTheme"
-                @setTheme="setTheme"
-                :bookAvailable="bookAvailable"
-                @onProgressChange="onProgressChange"
-                :navigation="navigation"
-                :curPercentage="curPercentage"
-                @jumpTo="jumpTo"
-                :parentProgress="progress"
-                ref="menuBar"></menu-bar>
+      <menu-bar :fontSizeList="fontSizeList"
+              :defaultFontSize="defaultFontSize"
+              @setFontSize='setFontSize'
+              :themeList="themeList"
+              :defaultTheme="defaultTheme"
+              @setTheme="setTheme"
+              :bookAvailable="bookAvailable"
+              @onProgressChange="onProgressChange"
+              :navigation="navigation"
+              :curPercentage="curPercentage"
+              @jumpTo="jumpTo"
+              :parentProgress="progress"
+              @addMask="addMask"
+              @removeMask="removeMask"
+              ref="menuBar"></menu-bar>
     </div>
 </template>
 <script>
@@ -38,7 +47,7 @@ export default {
   },
   data() {
     return {
-      ifTitleAndMenuShow: false,
+      ifMask: false,
       fontSizeList: [
         {fontSize: 12},
         {fontSize: 14},
@@ -91,6 +100,12 @@ export default {
     }
   },
   methods: {
+    addMask() {
+      this.ifMask = true
+    },
+    removeMask() {
+      this.ifMask = false
+    },
     // 对进度条的控制
     showProgress() {
       const currentLocation = this.rendition.currentLocation()
@@ -105,7 +120,6 @@ export default {
       this.hideTitleAndMenu()
     },
     hideTitleAndMenu() {
-      this.ifTitleAndMenuShow = false
       this.$refs.menuBar.hideSetting()
       this.$refs.menuBar.hideContent()
     },
@@ -136,21 +150,16 @@ export default {
         this.themes.fontSize(fontSize + 'px')
       }
     },
-    toggleTitleAndMenu() {
-      this.ifTitleAndMenuShow = !this.ifTitleAndMenuShow
-      if (!this.ifTitleAndMenuShow) {
-        this.$refs.menuBar.hideSetting()
-      }
+    toggleSetting() {
+      this.$refs.menuBar.hideSetting()
     },
     prevPage() {
       // Rendition.prev
       if (this.rendition) {
         this.rendition.prev()
         this.showProgress()
-        if (this.ifTitleAndMenuShow) {
-          this.ifTitleAndMenuShow = !this.ifTitleAndMenuShow
-          this.$refs.menuBar.hideSetting()
-        }
+
+        this.$refs.menuBar.hideSetting()
       }
     },
     nextPage() {
@@ -158,10 +167,8 @@ export default {
       if (this.rendition) {
         this.rendition.next()
         this.showProgress()
-        if (this.ifTitleAndMenuShow) {
-          this.ifTitleAndMenuShow = !this.ifTitleAndMenuShow
-          this.$refs.menuBar.hideSetting()
-        }
+
+        this.$refs.menuBar.hideSetting()
       }
     },
     // 电子书的解析和渲染
@@ -170,9 +177,10 @@ export default {
       this.book = new Epub(DOWNLOAD_URL)
       // 生成Rendition
       this.rendition = this.book.renderTo('read', {
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: window.innerWidth - 2 * 85,
+        height: window.innerHeight - 2 * 66
       })
+      console.log(window.innerHeight)
       // 通过Rendition.display渲染电子书
       this.rendition.display()
       // 获取Theme对象
@@ -198,8 +206,30 @@ export default {
 <style lang="scss" scoped>
 @import 'assets/styles/global';
 .ebook {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
   .read-wrapper {
+    .left {
+      position: absolute;
+      left: 0;
+      top: px2rem(64);
+      width: px2rem(64);
+      height: 90%;
+      @include center;
+    }
+    .right {
+      position: absolute;
+      right: 0;
+      top: px2rem(64);
+      width: px2rem(64);
+      height: 90%;
+      @include center;
+    }
+    .middle {
+      margin-left: px2rem(64);
+      margin-right: px2rem(64);
+    }
     .mask {
       position: absolute;
       top: 0;
