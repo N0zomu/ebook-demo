@@ -1,7 +1,8 @@
 <template>
   <div class="menu-bar">
     <transition name="slide-up">
-      <div class="menu-wrapper" :class="{'hide-box-shadow':ifSettingShow}" >
+      <div class="menu-wrapper" :class="{'hide-box-shadow':ifSettingShow}" 
+        v-show="!ifSelect">
         <div class="icon-wrapper">
           <span class="icon-menu icon" @click="showSetting(3)"></span>
         </div>
@@ -85,7 +86,8 @@ export default {
     bookAvailable: Boolean,
     curPercentage: Number,
     navigation: Object,
-    parentProgress: Number
+    parentProgress: Number,
+    ifSelect: Boolean
   },
   data() {
     return {

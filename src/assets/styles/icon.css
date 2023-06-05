@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?wljttt');
-  src:  url('fonts/icomoon.eot?wljttt#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?wljttt') format('truetype'),
-    url('fonts/icomoon.woff?wljttt') format('woff'),
-    url('fonts/icomoon.svg?wljttt#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?7fzxho');
+  src:  url('fonts/icomoon.eot?7fzxho#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?7fzxho') format('truetype'),
+    url('fonts/icomoon.woff?7fzxho') format('woff'),
+    url('fonts/icomoon.svg?7fzxho#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,38 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-add:before {
+  content: "\e912";
+  color: #fff;
+}
+.icon-delete:before {
+  content: "\e910";
+  color: #666;
+}
+.icon-go:before {
+  content: "\e911";
+  color: #666;
+}
+.icon-clear:before {
+  content: "\e90d";
+  color: #717378;
+}
+.icon-confirm:before {
+  content: "\e90e";
+  color: #717378;
+}
+.icon-makeNote:before {
+  content: "\e90f";
+  color: #717378;
+}
+.icon-mark:before {
+  content: "\e90b";
+  color: #707070;
+}
+.icon-note:before {
+  content: "\e90c";
+  color: #707070;
+}
 .icon-left:before {
   content: "\e909";
   color: #999;

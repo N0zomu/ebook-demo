@@ -1,12 +1,35 @@
 <template>
     <div class="ebook">
-      <title-bar></title-bar>
+      <title-bar :ifSelect="ifSelect"
+                  @addHighlight="addHighlight"
+                  :highlightList="highlightList"
+                  :colorNow="colorNow"
+                  @selectColor="selectColor"
+                  @removeHighlight="removeHighlight"
+                  :ifInputShow="ifInputShow"
+                  @showInput="showInput"
+                  @finishNote="finishNote"
+                  :noteList="noteList"
+                  :ifNotesShow="ifNotesShow"
+                  @showNotes="showNotes"
+                  @hideNotes="hideNotes"
+                  @updateNote="updateNote"
+                  :ifLabelShow="ifLabelShow"
+                  @showLabels="showLabels"
+                  @hideLabels="hideLabels"
+                  @addLabel="addLabel"
+                  :labelList="labelList"
+                  @jumpToLabel="jumpToLabel"
+                  @deleteLabel="deleteLabel"
+                  @jumpToNote="jumpToNote"
+                  @deleteNote="deleteNote"
+                  ></title-bar>
       <div class="read-wrapper">
         <div class="left" @click="prevPage">
           <span class="icon-left icon"></span>
         </div>
         <div class="middle">
-          <div id="read"></div>
+          <div id="read" ></div>
         </div>
         <div class="right" @click="nextPage">
           <span class="icon-right icon"></span>
@@ -31,6 +54,7 @@
               :parentProgress="progress"
               @addMask="addMask"
               @removeMask="removeMask"
+              :ifSelect="ifSelect"
               ref="menuBar"></menu-bar>
     </div>
 </template>
@@ -38,8 +62,25 @@
 import TitleBar from '@/components/TitleBar'
 import MenuBar from '@/components/MenuBar'
 import Epub from 'epubjs'
-const DOWNLOAD_URL = '/static/bookTest.epub'
+const DOWNLOAD_URL = '/static/3.epub'
 global.ePub = Epub
+Date.prototype.Format = function (fmt) {
+  var o = {
+    'M+': this.getMonth() + 1, 
+    'd+': this.getDate(), 
+    'H+': this.getHours(),  
+    'm+': this.getMinutes(), 
+    's+': this.getSeconds(),  
+    'q+': Math.floor((this.getMonth() + 3) / 3), 
+    'S': this.getMilliseconds() 
+  }
+  if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + '').substr(4 - RegExp.$1.length))
+  for (var k in o) {
+    if (new RegExp('(' + k + ')').test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)))
+  }
+    
+  return fmt
+}
 export default {
   components: {
     TitleBar,
@@ -92,14 +133,124 @@ export default {
           }
         }
       ],
+      highlightList: [
+        // '#FFFFCC', '#CCFF99', '#CCFFFF', '#FFCCCC', '#FF6666'
+        'yellow', 'green', 'blue', 'pink', 'red'
+      ],
       defaultTheme: 0,
       bookAvailable: false,
       curPercentage: 0,
       navigation: {},
-      progress: 0
+      progress: 0,
+      ifSelect: false,
+      selectRange: '',
+      selectContent: '',
+      colorNow: -1,
+      ifInputShow: false,
+      noteList: [],
+      ifNotesShow: false,
+      ifLabelShow: false,
+      labelList: []
     }
   },
   methods: {
+    deleteNote(index) {
+      this.rendition.annotations.remove(this.noteList[index].Range, 'highlight')
+      this.noteList.splice(index, 1)
+    },
+    jumpToNote(index) {
+      this.rendition.display(this.noteList[index].cfi)
+      this.ifNotesShow = false
+    },
+    deleteLabel(index) {
+      this.labelList.splice(index, 1)
+    },
+    jumpToLabel(index) {
+      this.rendition.display(this.labelList[index].cfi)
+      this.ifLabelShow = false
+    },
+    addLabel() {
+      console.log(this.rendition)
+      console.log(this.rendition.location.start.cfi)
+      var cfi = this.rendition.location.start.cfi.toString()
+      var percentage = this.rendition.location.start.percentage * 100
+      if (!this.labelList.find(item => item.cfi === cfi)) {
+        var time = new Date().Format('yyyy-MM-dd HH:mm:ss')
+        var newLabel = {'cfi': cfi, 'percentage': percentage.toFixed(0), 'time': time}
+        this.labelList.push(newLabel) 
+      }
+    },
+    showLabels() {
+      this.ifLabelShow = true
+      console.log(this.labelList)
+    },
+    hideLabels() {
+      this.ifLabelShow = false
+    },
+    updateNote(index, note) {
+      this.noteList[index].note = note
+    },
+    hideNotes() {
+      this.ifNotesShow = false
+    },
+    showNotes() {
+      this.ifNotesShow = true
+    },
+    finishNote(note) {
+      var index = this.noteList.findIndex(item => item.Range === this.selectRange)
+      if (index !== -1) {
+        if (this.colorNow === -1) {
+          this.noteList.splice(index, 1)
+        } else {
+          this.noteList[index].color = this.colorNow
+        }
+      } else {
+        if (this.colorNow !== -1) {
+          var cfi = this.rendition.location.start.cfi
+          var newNote = {
+            'color': this.colorNow,
+            'content': this.selectContent,
+            'note': note,
+            'Range': this.selectRange,
+            'cfi': cfi
+          }
+          console.log(newNote)
+          this.noteList.push(newNote)
+        }
+      }
+      this.ifMask = false
+      this.ifSelect = false
+      this.colorNow = -1
+      this.ifInputShow = false
+    },
+    showInput() {
+      this.ifInputShow = true
+    },
+    selectColor(index) {
+      this.colorNow = index
+    },
+    addHighlight(index) {
+      if (this.colorNow !== -1) {
+        this.removeHighlight()
+      }
+      if (this.noteList.find(item => item.Range === this.selectRange)) {
+        this.removeHighlight()
+      } 
+      this.selectColor(index)
+      console.log(this.colorNow)
+      this.rendition.annotations.highlight(this.selectRange, {
+
+      }, function() {
+
+      }, 'className', {
+        'fill': this.highlightList[this.colorNow]
+      })
+    },
+    removeHighlight() {
+      this.rendition.annotations.remove(this.selectRange, 'highlight')
+      this.colorNow = -1
+      this.ifInputShow = false
+    },
     addMask() {
       this.ifMask = true
     },
@@ -151,6 +302,14 @@ export default {
       }
     },
     toggleSetting() {
+      if (this.colorNow !== -1) {
+        this.finishNote()
+      }
+      this.ifSelect = false
+      this.colorNow = -1
+      this.ifInputShow = false
+      this.ifNotesShow = false
+      this.ifLabelShow = false
       this.$refs.menuBar.hideSetting()
     },
     prevPage() {
@@ -174,13 +333,14 @@ export default {
     // 电子书的解析和渲染
     showEpub() {
       // 生成Book
-      this.book = new Epub(DOWNLOAD_URL)
+      this.book = window.ePub(DOWNLOAD_URL)
       // 生成Rendition
       this.rendition = this.book.renderTo('read', {
         width: window.innerWidth - 2 * 85,
-        height: window.innerHeight - 2 * 66
+        height: window.innerHeight - 2 * 66,
+        allowScriptedContent: true
       })
-      console.log(window.innerHeight)
+      
       // 通过Rendition.display渲染电子书
       this.rendition.display()
       // 获取Theme对象
@@ -191,10 +351,26 @@ export default {
       // 获取Location对象，通过钩子函数来实现
       this.book.ready.then(() => {
         this.navigation = this.book.navigation
+        console.log(this.navigation)
         return this.book.locations.generate()
       }).then(result => {
         this.locations = this.book.locations
         this.bookAvailable = true
+      })
+      console.log(this.locations)
+      this.rendition.on('selected', (cfiRange, contents) => {
+        console.log(cfiRange)
+        this.selectRange = cfiRange
+        this.selectContent = contents.window.getSelection().toString()
+        if (this.selectContent !== '\n') {
+          this.ifSelect = true
+          this.ifMask = true
+          console.log(this.selectContent)
+        }
+        var index = this.noteList.findIndex(item => item.Range === this.selectRange)
+        if (index !== -1) {
+          this.colorNow = this.noteList[index].color
+        }
       })
     }
   },
