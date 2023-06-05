@@ -207,6 +207,7 @@ export default {
       } else {
         if (this.colorNow !== -1) {
           var cfi = this.rendition.location.start.cfi
+          console.log(typeof (this.selectRange))
           var newNote = {
             'color': this.colorNow,
             'content': this.selectContent,
@@ -332,6 +333,7 @@ export default {
     },
     // 电子书的解析和渲染
     showEpub() {
+      console.log(this.$route.query.index)
       // 生成Book
       this.book = window.ePub(DOWNLOAD_URL)
       // 生成Rendition
@@ -357,7 +359,6 @@ export default {
         this.locations = this.book.locations
         this.bookAvailable = true
       })
-      console.log(this.locations)
       this.rendition.on('selected', (cfiRange, contents) => {
         console.log(cfiRange)
         this.selectRange = cfiRange

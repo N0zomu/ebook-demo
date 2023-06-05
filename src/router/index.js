@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Ebook from '@/Ebook'
-import Test from '@/Test'
+import Home from '@/components/Home'
 
 Vue.use(Router)
 
@@ -16,8 +16,8 @@ export default new Router({
       component: Ebook
     },
     {
-      path: '/test',
-      component: Test
+      path: '/home',
+      component: Home
     }
   ]
 })
