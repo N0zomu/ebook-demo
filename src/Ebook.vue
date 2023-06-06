@@ -336,6 +336,7 @@ export default {
       console.log(this.$route.query.index)
       // 生成Book
       this.book = window.ePub(DOWNLOAD_URL)
+      console.log(this.book)
       // 生成Rendition
       this.rendition = this.book.renderTo('read', {
         width: window.innerWidth - 2 * 85,
