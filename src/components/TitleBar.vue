@@ -3,7 +3,7 @@
     <transition name="slide-down">
       <div class="title-wrapper">
         <div class="left">
-          <span class="icon-back icon"></span>
+          <span class="icon-back icon" @click="jumpBook"></span>
         </div>
         <div class="right">
           <div class="icon-wrapper">
@@ -13,7 +13,7 @@
             <span class="icon-note icon" @click="showNotes"></span>
           </div>
           <div class="icon-wrapper">
-            <span class="icon-person icon"></span>
+            <span class="icon-person icon" @click="jump"></span>
           </div>
         </div>
       </div>
@@ -41,7 +41,7 @@
       </div>
     </transition>
     <transition name="slide-up">
-      <textarea class="note-input" rows="20" cols="50"
+      <textarea class="note-input" rows="20" cols="50" id="notepage"
       placeholder="请输入笔记"
       v-show="ifInputShow" ref="note">
       </textarea>
@@ -149,7 +149,9 @@ export default {
       type: Boolean,
       default: false
     },
-    labelList: Array
+    labelList: Array,
+    user_id: Number,
+    book_id: Number
   },
   // data() {
   //   return {
@@ -157,6 +159,14 @@ export default {
   //   }
   // },
   methods: {
+    jump() {
+      let path = window.location.protocol + '//' + 'localhost:1024/#/self?id='+this.user_id
+      window.location.href= path
+    },
+    jumpBook() {
+      let path = window.location.protocol + '//' + 'localhost:1024/#/book/'+this.book_id
+      window.location.href= path
+    },
     jumpToNote(index) {
       this.$emit('jumpToNote', index)
     },
@@ -195,6 +205,7 @@ export default {
       this.$emit('removeHighlight')
     },
     showInput() {
+      document.getElementById('notepage').innerHTML = ''
       if (this.colorNow !== -1) {
         this.$emit('showInput')
       } else {
@@ -294,6 +305,7 @@ export default {
       width: 60%;
       height: 100%;
       background: white;
+      overflow: auto;
       .note-title {
         height: px2rem(30);
         background: #409EFF;
@@ -347,6 +359,7 @@ export default {
       width: 30%;
       height: 100%;
       background: white;
+      overflow: auto;
       .label-title {
         height: px2rem(30);
         background: #409EFF;

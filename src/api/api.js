@@ -49,15 +49,15 @@ export const createLabel = (user_id, book_id, cfi, percentage, time) => {
 
 export const getLabels = (user_id, book_id) => {
     return axios.post('http://127.0.0.1:8000/label/search_label',
-    { 'user_id': user_id, 'book_id': book_id})
+    { 'user_id': user_id, 'book_id': book_id })
 }
 
 export const deleteLabels = (time) => {
     return axios.post('http://127.0.0.1:8000/label/delete_label',
-    { 'time': time})
+    { 'time': time })
 }
 
 export const getBookSource = (book_id) => {
     return axios.post('http://127.0.0.1:8000/book/getBookSource',
-    { "id": book_id})
+    { 'id': book_id })
 }

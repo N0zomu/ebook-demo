@@ -31,6 +31,11 @@ module.exports = {
     'indent' : 'off',
     'eol-last' : 'off',
     'camelcase' : 'off',
-    'space-infix-ops' : 'off'
+    'space-infix-ops' : 'off',
+    'no-unused-vars' : 'off',
+    'quotes' : 'off',
+    'key-spacing' : 'off',
+    'comma-spacing' : 'off',
+    'standard%2Fobject-curly-even-spacing' : 'off'
   }
 }

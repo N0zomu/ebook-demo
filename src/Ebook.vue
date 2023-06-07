@@ -23,6 +23,8 @@
                   @deleteLabel="deleteLabel"
                   @jumpToNote="jumpToNote"
                   @deleteNote="deleteNote"
+                  :user_id="user_id"
+                  :book_id="book_id"
                   ></title-bar>
       <div class="read-wrapper">
         <div class="left" @click="prevPage">
@@ -63,8 +65,8 @@ import TitleBar from '@/components/TitleBar'
 import MenuBar from '@/components/MenuBar'
 import Epub from 'epubjs'
 import {getNotes, createNote, updateNoteColor, updateNoteText, deleteNote,
-createLabel, getLabels, deleteLabels, getBookSource} from '@/api/api.js'
-const DOWNLOAD_URL = '/static/3.epub'
+createLabel, getLabels, deleteLabels, getBookSource, addBook} from '@/api/api.js'
+// const DOWNLOAD_URL = '/static/3.epub'
 global.ePub = Epub
 Date.prototype.Format = function (fmt) {
   var o = {
@@ -156,17 +158,17 @@ export default {
       user_id: 0,
       book_id: 0,
       firstLoad: 1,
-      bookURL: ""
+      bookURL: ''
     }
   },
   watch: {
     noteList: {
       handler (val) {
         if (this.firstLoad) {
-          this.firstLoad --
+          this.firstLoad--
         } else {
           var i =val.length
-          while(i--) {
+          while (i--) {
             updateNoteColor(val[i].Range, val[i].color)
             updateNoteText(val[i].Range, val[i].note)
           }
@@ -243,12 +245,12 @@ export default {
           }
           console.log(newNote)
           this.noteList.push(newNote)
-          console.log(typeof(note))
+          console.log(typeof (note))
           if (note === undefined) {
-            console.log(typeof(note))
+            console.log(typeof (note))
             createNote(this.user_id, this.book_id, 
             this.colorNow, this.selectContent, this.selectRange, 
-            "暂无", cfi)
+            '暂无', cfi)
           } else {
             createNote(this.user_id, this.book_id, 
             this.colorNow, this.selectContent, this.selectRange, 
@@ -374,12 +376,14 @@ export default {
       this.user_id = this.$route.query.user_id
       this.book_id = this.$route.query.book_id
       this.bookURL = this.$route.query.url
+      this.href = this.$route.query.href
+      this.book = Epub(this.bookURL)
       // 生成Book
       // getBookSource(this.book_id).then(respose => {
       //   this.bookURL = respose.data.result
       //   console.log(this.bookURL)
       // })
-      this.book = window.ePub(this.bookURL)
+
       // this.book = window.ePub(DOWNLOAD_URL)
       console.log(this.book)
       // 生成Rendition
@@ -421,7 +425,7 @@ export default {
         }
       })
       // 通过Rendition.display渲染电子书
-      this.rendition.display()
+      this.rendition.display(this.href)
       // 获取Theme对象
       this.themes = this.rendition.themes
       this.setFontSize(this.defaultFontSize)
