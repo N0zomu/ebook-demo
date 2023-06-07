@@ -62,6 +62,8 @@
 import TitleBar from '@/components/TitleBar'
 import MenuBar from '@/components/MenuBar'
 import Epub from 'epubjs'
+import {getNotes, createNote, updateNoteColor, updateNoteText, deleteNote,
+createLabel, getLabels, deleteLabels, getBookSource} from '@/api/api.js'
 const DOWNLOAD_URL = '/static/3.epub'
 global.ePub = Epub
 Date.prototype.Format = function (fmt) {
@@ -150,19 +152,42 @@ export default {
       noteList: [],
       ifNotesShow: false,
       ifLabelShow: false,
-      labelList: []
+      labelList: [],
+      user_id: 0,
+      book_id: 0,
+      firstLoad: 1,
+      bookURL: ""
+    }
+  },
+  watch: {
+    noteList: {
+      handler (val) {
+        if (this.firstLoad) {
+          this.firstLoad --
+        } else {
+          var i =val.length
+          while(i--) {
+            updateNoteColor(val[i].Range, val[i].color)
+            updateNoteText(val[i].Range, val[i].note)
+          }
+        }
+      },
+      deep: true
     }
   },
   methods: {
     deleteNote(index) {
+      var range = this.noteList[index].Range
       this.rendition.annotations.remove(this.noteList[index].Range, 'highlight')
       this.noteList.splice(index, 1)
+      deleteNote(range)
     },
     jumpToNote(index) {
       this.rendition.display(this.noteList[index].cfi)
       this.ifNotesShow = false
     },
     deleteLabel(index) {
+      deleteLabels(this.labelList[index].time)
       this.labelList.splice(index, 1)
     },
     jumpToLabel(index) {
@@ -177,7 +202,8 @@ export default {
       if (!this.labelList.find(item => item.cfi === cfi)) {
         var time = new Date().Format('yyyy-MM-dd HH:mm:ss')
         var newLabel = {'cfi': cfi, 'percentage': percentage.toFixed(0), 'time': time}
-        this.labelList.push(newLabel) 
+        this.labelList.push(newLabel)
+        createLabel(this.user_id, this.book_id, cfi, percentage, time) 
       }
     },
     showLabels() {
@@ -217,6 +243,17 @@ export default {
           }
           console.log(newNote)
           this.noteList.push(newNote)
+          console.log(typeof(note))
+          if (note === undefined) {
+            console.log(typeof(note))
+            createNote(this.user_id, this.book_id, 
+            this.colorNow, this.selectContent, this.selectRange, 
+            "暂无", cfi)
+          } else {
+            createNote(this.user_id, this.book_id, 
+            this.colorNow, this.selectContent, this.selectRange, 
+            note, cfi)
+          }
         }
       }
       this.ifMask = false
@@ -333,9 +370,17 @@ export default {
     },
     // 电子书的解析和渲染
     showEpub() {
-      console.log(this.$route.query.index)
+      console.log(this.$route.query)
+      this.user_id = this.$route.query.user_id
+      this.book_id = this.$route.query.book_id
+      this.bookURL = this.$route.query.url
       // 生成Book
-      this.book = window.ePub(DOWNLOAD_URL)
+      // getBookSource(this.book_id).then(respose => {
+      //   this.bookURL = respose.data.result
+      //   console.log(this.bookURL)
+      // })
+      this.book = window.ePub(this.bookURL)
+      // this.book = window.ePub(DOWNLOAD_URL)
       console.log(this.book)
       // 生成Rendition
       this.rendition = this.book.renderTo('read', {
@@ -343,7 +388,38 @@ export default {
         height: window.innerHeight - 2 * 66,
         allowScriptedContent: true
       })
-      
+      getNotes(this.user_id, this.book_id).then(respose => {
+        console.log(respose)
+        for (var i = 0; i < respose.data.notes.length; i++) {
+          var range = respose.data.notes[i].range1
+          var colorIndex = parseInt(respose.data.notes[i].color)
+          this.rendition.annotations.highlight(range, {
+
+          }, function() {
+
+          }, 'className', {
+            'fill': this.highlightList[colorIndex]
+          })
+          var noteItem = {
+            'color': colorIndex,
+            'content': respose.data.notes[i].content,
+            'note': respose.data.notes[i].note,
+            'Range': respose.data.notes[i].range1,
+            'cfi': respose.data.notes[i].cfi
+          }
+          this.noteList.push(noteItem)
+        }
+      })
+      getLabels(this.user_id, this.book_id).then(respose => {
+        console.log(respose)
+        for (var i = 0; i < respose.data.labels.length; i++) {
+          var labelItem = 
+          {
+            'cfi': respose.data.labels[i].cfi, 'percentage': respose.data.labels[i].percentage, 'time': respose.data.labels[i].time
+          }
+          this.labelList.push(labelItem)
+        }
+      })
       // 通过Rendition.display渲染电子书
       this.rendition.display()
       // 获取Theme对象

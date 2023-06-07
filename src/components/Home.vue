@@ -1,7 +1,7 @@
 <template>
   <div class="hello">
     <h1>hello, world</h1>
-    <router-link to="/ebook?index=1">
+    <router-link to="/ebook?user_id=1&book_id=2">
       <button class="button1" type="primary">点击回家</button>
     </router-link>
   </div>
